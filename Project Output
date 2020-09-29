@@ -1,0 +1,387 @@
+PublishtoGit
+JuanV
+September 28, 2020
+Credit Data Mining
+Directory setting and Data Load
+library(dplyr)
+## 
+## Attaching package: 'dplyr'
+## The following objects are masked from 'package:stats':
+## 
+##     filter, lag
+## The following objects are masked from 'package:base':
+## 
+##     intersect, setdiff, setequal, union
+library(ggplot2)
+## Warning: package 'ggplot2' was built under R version 3.6.3
+library(reshape)
+## Warning: package 'reshape' was built under R version 3.6.3
+## 
+## Attaching package: 'reshape'
+## The following object is masked from 'package:dplyr':
+## 
+##     rename
+library(GGally)
+## Warning: package 'GGally' was built under R version 3.6.3
+## Registered S3 method overwritten by 'GGally':
+##   method from   
+##   +.gg   ggplot2
+## 
+## Attaching package: 'GGally'
+## The following object is masked from 'package:dplyr':
+## 
+##     nasa
+library(gains)
+library(rpart)
+## Warning: package 'rpart' was built under R version 3.6.3
+library(rpart.plot)
+## Warning: package 'rpart.plot' was built under R version 3.6.3
+library(heuristica)
+## Warning: package 'heuristica' was built under R version 3.6.3
+setwd("C:/Users/juan/Desktop/CSU Global/MIS500 - Intro to Data Science/R")
+GermanCredit.df <- read.csv("GermanCredit.csv")
+summary(GermanCredit.df)
+##       OBS.           CHK_ACCT        DURATION       HISTORY     
+##  Min.   :   1.0   Min.   :0.000   Min.   : 4.0   Min.   :0.000  
+##  1st Qu.: 250.8   1st Qu.:0.000   1st Qu.:12.0   1st Qu.:2.000  
+##  Median : 500.5   Median :1.000   Median :18.0   Median :2.000  
+##  Mean   : 500.5   Mean   :1.577   Mean   :20.9   Mean   :2.545  
+##  3rd Qu.: 750.2   3rd Qu.:3.000   3rd Qu.:24.0   3rd Qu.:4.000  
+##  Max.   :1000.0   Max.   :3.000   Max.   :72.0   Max.   :4.000  
+##     NEW_CAR         USED_CAR       FURNITURE        RADIO.TV      EDUCATION   
+##  Min.   :0.000   Min.   :0.000   Min.   :0.000   Min.   :0.00   Min.   :0.00  
+##  1st Qu.:0.000   1st Qu.:0.000   1st Qu.:0.000   1st Qu.:0.00   1st Qu.:0.00  
+##  Median :0.000   Median :0.000   Median :0.000   Median :0.00   Median :0.00  
+##  Mean   :0.234   Mean   :0.103   Mean   :0.181   Mean   :0.28   Mean   :0.05  
+##  3rd Qu.:0.000   3rd Qu.:0.000   3rd Qu.:0.000   3rd Qu.:1.00   3rd Qu.:0.00  
+##  Max.   :1.000   Max.   :1.000   Max.   :1.000   Max.   :1.00   Max.   :1.00  
+##    RETRAINING        AMOUNT         SAV_ACCT       EMPLOYMENT   
+##  Min.   :0.000   Min.   :  250   Min.   :0.000   Min.   :0.000  
+##  1st Qu.:0.000   1st Qu.: 1366   1st Qu.:0.000   1st Qu.:2.000  
+##  Median :0.000   Median : 2320   Median :0.000   Median :2.000  
+##  Mean   :0.097   Mean   : 3271   Mean   :1.105   Mean   :2.384  
+##  3rd Qu.:0.000   3rd Qu.: 3972   3rd Qu.:2.000   3rd Qu.:4.000  
+##  Max.   :1.000   Max.   :18424   Max.   :4.000   Max.   :4.000  
+##   INSTALL_RATE      MALE_DIV     MALE_SINGLE    MALE_MAR_or_WID  CO.APPLICANT  
+##  Min.   :1.000   Min.   :0.00   Min.   :0.000   Min.   :0.000   Min.   :0.000  
+##  1st Qu.:2.000   1st Qu.:0.00   1st Qu.:0.000   1st Qu.:0.000   1st Qu.:0.000  
+##  Median :3.000   Median :0.00   Median :1.000   Median :0.000   Median :0.000  
+##  Mean   :2.973   Mean   :0.05   Mean   :0.548   Mean   :0.092   Mean   :0.041  
+##  3rd Qu.:4.000   3rd Qu.:0.00   3rd Qu.:1.000   3rd Qu.:0.000   3rd Qu.:0.000  
+##  Max.   :4.000   Max.   :1.00   Max.   :1.000   Max.   :1.000   Max.   :1.000  
+##    GUARANTOR     PRESENT_RESIDENT  REAL_ESTATE    PROP_UNKN_NONE 
+##  Min.   :0.000   Min.   :1.000    Min.   :0.000   Min.   :0.000  
+##  1st Qu.:0.000   1st Qu.:2.000    1st Qu.:0.000   1st Qu.:0.000  
+##  Median :0.000   Median :3.000    Median :0.000   Median :0.000  
+##  Mean   :0.052   Mean   :2.845    Mean   :0.282   Mean   :0.154  
+##  3rd Qu.:0.000   3rd Qu.:4.000    3rd Qu.:1.000   3rd Qu.:0.000  
+##  Max.   :1.000   Max.   :4.000    Max.   :1.000   Max.   :1.000  
+##       AGE        OTHER_INSTALL        RENT          OWN_RES     
+##  Min.   :19.00   Min.   :0.000   Min.   :0.000   Min.   :0.000  
+##  1st Qu.:27.00   1st Qu.:0.000   1st Qu.:0.000   1st Qu.:0.000  
+##  Median :33.00   Median :0.000   Median :0.000   Median :1.000  
+##  Mean   :35.55   Mean   :0.186   Mean   :0.179   Mean   :0.713  
+##  3rd Qu.:42.00   3rd Qu.:0.000   3rd Qu.:0.000   3rd Qu.:1.000  
+##  Max.   :75.00   Max.   :1.000   Max.   :1.000   Max.   :1.000  
+##   NUM_CREDITS         JOB        NUM_DEPENDENTS    TELEPHONE    
+##  Min.   :1.000   Min.   :0.000   Min.   :1.000   Min.   :0.000  
+##  1st Qu.:1.000   1st Qu.:2.000   1st Qu.:1.000   1st Qu.:0.000  
+##  Median :1.000   Median :2.000   Median :1.000   Median :0.000  
+##  Mean   :1.407   Mean   :1.904   Mean   :1.155   Mean   :0.404  
+##  3rd Qu.:2.000   3rd Qu.:2.000   3rd Qu.:1.000   3rd Qu.:1.000  
+##  Max.   :4.000   Max.   :3.000   Max.   :2.000   Max.   :1.000  
+##     FOREIGN         RESPONSE  
+##  Min.   :0.000   Min.   :0.0  
+##  1st Qu.:0.000   1st Qu.:0.0  
+##  Median :0.000   Median :1.0  
+##  Mean   :0.037   Mean   :0.7  
+##  3rd Qu.:0.000   3rd Qu.:1.0  
+##  Max.   :1.000   Max.   :1.0
+Data Exploration
+Exploratory functions: summary, scatter plot, correlation heat map financial condition, mean bar plot by response value of 13 variable
+####Explore the approval and rejection of credit for a new car. Variables selected are ####:DURATION,HISTORY,NEW_CAR,AMOUNT,EMPLOYMENT,MALE_SINGLE,MALE_MAR_or_WID,CO.APPLICANT,AGE,RENT,OWN_RES,JOB,NUM_DEPENDENTS.
+#creating the variables for new_car data set with response == 1 or ==0
+GermanCredit_approved_newcar_a <- GermanCredit.df %>% filter(RESPONSE==1,NEW_CAR==1) %>% select(DURATION,HISTORY,NEW_CAR,AMOUNT,EMPLOYMENT,MALE_SINGLE,MALE_MAR_or_WID,CO.APPLICANT,AGE,RENT,OWN_RES,JOB,NUM_DEPENDENTS)
+GermanCredit_approved_newcar <- GermanCredit.df %>% filter(RESPONSE==0,NEW_CAR==1) %>% select(DURATION,HISTORY,NEW_CAR,AMOUNT,EMPLOYMENT,MALE_SINGLE,MALE_MAR_or_WID,CO.APPLICANT,AGE,RENT,OWN_RES,JOB,NUM_DEPENDENTS)
+Summary(): Summary of data sets
+summary(GermanCredit_approved_newcar_a)
+##     DURATION        HISTORY         NEW_CAR      AMOUNT        EMPLOYMENT   
+##  Min.   : 4.00   Min.   :0.000   Min.   :1   Min.   :  250   Min.   :0.000  
+##  1st Qu.:10.00   1st Qu.:2.000   1st Qu.:1   1st Qu.: 1287   1st Qu.:2.000  
+##  Median :12.00   Median :2.000   Median :1   Median : 2022   Median :2.000  
+##  Mean   :16.71   Mean   :2.841   Mean   :1   Mean   : 2817   Mean   :2.352  
+##  3rd Qu.:21.00   3rd Qu.:4.000   3rd Qu.:1   3rd Qu.: 3518   3rd Qu.:3.000  
+##  Max.   :60.00   Max.   :4.000   Max.   :1   Max.   :13756   Max.   :4.000  
+##   MALE_SINGLE     MALE_MAR_or_WID    CO.APPLICANT          AGE       
+##  Min.   :0.0000   Min.   :0.00000   Min.   :0.00000   Min.   :20.00  
+##  1st Qu.:0.0000   1st Qu.:0.00000   1st Qu.:0.00000   1st Qu.:30.00  
+##  Median :1.0000   Median :0.00000   Median :0.00000   Median :37.00  
+##  Mean   :0.6069   Mean   :0.08966   Mean   :0.03448   Mean   :38.97  
+##  3rd Qu.:1.0000   3rd Qu.:0.00000   3rd Qu.:0.00000   3rd Qu.:45.00  
+##  Max.   :1.0000   Max.   :1.00000   Max.   :1.00000   Max.   :75.00  
+##       RENT           OWN_RES            JOB        NUM_DEPENDENTS 
+##  Min.   :0.0000   Min.   :0.0000   Min.   :0.000   Min.   :1.000  
+##  1st Qu.:0.0000   1st Qu.:0.0000   1st Qu.:1.000   1st Qu.:1.000  
+##  Median :0.0000   Median :1.0000   Median :2.000   Median :1.000  
+##  Mean   :0.1448   Mean   :0.7448   Mean   :1.759   Mean   :1.255  
+##  3rd Qu.:0.0000   3rd Qu.:1.0000   3rd Qu.:2.000   3rd Qu.:2.000  
+##  Max.   :1.0000   Max.   :1.0000   Max.   :3.000   Max.   :2.000
+summary(GermanCredit_approved_newcar)
+##     DURATION        HISTORY         NEW_CAR      AMOUNT        EMPLOYMENT   
+##  Min.   : 6.00   Min.   :0.000   Min.   :1   Min.   :  654   Min.   :0.000  
+##  1st Qu.:12.00   1st Qu.:2.000   1st Qu.:1   1st Qu.: 1216   1st Qu.:1.000  
+##  Median :18.00   Median :2.000   Median :1   Median : 1647   Median :2.000  
+##  Mean   :21.43   Mean   :2.281   Mean   :1   Mean   : 3463   Mean   :2.315  
+##  3rd Qu.:24.00   3rd Qu.:3.000   3rd Qu.:1   3rd Qu.: 4249   3rd Qu.:3.000  
+##  Max.   :60.00   Max.   :4.000   Max.   :1   Max.   :14896   Max.   :4.000  
+##   MALE_SINGLE     MALE_MAR_or_WID    CO.APPLICANT          AGE       
+##  Min.   :0.0000   Min.   :0.00000   Min.   :0.00000   Min.   :20.00  
+##  1st Qu.:0.0000   1st Qu.:0.00000   1st Qu.:0.00000   1st Qu.:26.00  
+##  Median :1.0000   Median :0.00000   Median :0.00000   Median :31.00  
+##  Mean   :0.5169   Mean   :0.07865   Mean   :0.05618   Mean   :34.02  
+##  3rd Qu.:1.0000   3rd Qu.:0.00000   3rd Qu.:0.00000   3rd Qu.:41.00  
+##  Max.   :1.0000   Max.   :1.00000   Max.   :1.00000   Max.   :68.00  
+##       RENT           OWN_RES            JOB        NUM_DEPENDENTS 
+##  Min.   :0.0000   Min.   :0.0000   Min.   :0.000   Min.   :1.000  
+##  1st Qu.:0.0000   1st Qu.:0.0000   1st Qu.:1.000   1st Qu.:1.000  
+##  Median :0.0000   Median :1.0000   Median :2.000   Median :1.000  
+##  Mean   :0.2135   Mean   :0.6404   Mean   :1.865   Mean   :1.169  
+##  3rd Qu.:0.0000   3rd Qu.:1.0000   3rd Qu.:2.000   3rd Qu.:1.000  
+##  Max.   :1.0000   Max.   :1.0000   Max.   :3.000   Max.   :2.000
+Cor() : Correlation in data set variables
+cor(GermanCredit_approved_newcar_a)
+## Warning in cor(GermanCredit_approved_newcar_a): the standard deviation is zero
+##                     DURATION     HISTORY NEW_CAR       AMOUNT  EMPLOYMENT
+## DURATION         1.000000000 -0.20509521      NA  0.623485579  0.15193533
+## HISTORY         -0.205095207  1.00000000      NA -0.157274725  0.17555981
+## NEW_CAR                   NA          NA       1           NA          NA
+## AMOUNT           0.623485579 -0.15727473      NA  1.000000000 -0.01815863
+## EMPLOYMENT       0.151935330  0.17555981      NA -0.018158631  1.00000000
+## MALE_SINGLE     -0.011821335  0.01307657      NA  0.141125600  0.07012210
+## MALE_MAR_or_WID -0.002623466 -0.09184075      NA -0.191531471 -0.01134628
+## CO.APPLICANT     0.097985064 -0.11710135      NA  0.121967288  0.06956142
+## AGE             -0.039434692  0.29436088      NA -0.002428056  0.10242787
+## RENT            -0.103366628 -0.14519186      NA  0.017162747 -0.10276012
+## OWN_RES         -0.106838865  0.15483424      NA -0.202259926  0.03914739
+## JOB              0.333814873 -0.11083636      NA  0.243637470  0.24999662
+## NUM_DEPENDENTS  -0.184221168  0.10497951      NA  0.039376473 -0.01316857
+##                 MALE_SINGLE MALE_MAR_or_WID CO.APPLICANT          AGE
+## DURATION        -0.01182134    -0.002623466   0.09798506 -0.039434692
+## HISTORY          0.01307657    -0.091840751  -0.11710135  0.294360878
+## NEW_CAR                  NA              NA           NA           NA
+## AMOUNT           0.14112560    -0.191531471   0.12196729 -0.002428056
+## EMPLOYMENT       0.07012210    -0.011346281   0.06956142  0.102427869
+## MALE_SINGLE      1.00000000    -0.389931768   0.07471370  0.144274902
+## MALE_MAR_or_WID -0.38993177     1.000000000  -0.05930696 -0.236781440
+## CO.APPLICANT     0.07471370    -0.059306964   1.00000000  0.068356270
+## AGE              0.14427490    -0.236781440   0.06835627  1.000000000
+## RENT            -0.02988302     0.008042106  -0.07777138 -0.206934249
+## OWN_RES         -0.08242043     0.072939366  -0.06278090 -0.054167242
+## JOB             -0.08904781    -0.027580637   0.01036395 -0.076610987
+## NUM_DEPENDENTS   0.37390730    -0.183685001  -0.11061397 -0.002678959
+##                         RENT     OWN_RES         JOB NUM_DEPENDENTS
+## DURATION        -0.103366628 -0.10683887  0.33381487   -0.184221168
+## HISTORY         -0.145191856  0.15483424 -0.11083636    0.104979514
+## NEW_CAR                   NA          NA          NA             NA
+## AMOUNT           0.017162747 -0.20225993  0.24363747    0.039376473
+## EMPLOYMENT      -0.102760116  0.03914739  0.24999662   -0.013168572
+## MALE_SINGLE     -0.029883021 -0.08242043 -0.08904781    0.373907305
+## MALE_MAR_or_WID  0.008042106  0.07293937 -0.02758064   -0.183685001
+## CO.APPLICANT    -0.077771377 -0.06278090  0.01036395   -0.110613967
+## AGE             -0.206934249 -0.05416724 -0.07661099   -0.002678959
+## RENT             1.000000000 -0.70308822 -0.10209566    0.118731388
+## OWN_RES         -0.703088218  1.00000000 -0.01951974   -0.020270270
+## JOB             -0.102095662 -0.01951974  1.00000000   -0.169171051
+## NUM_DEPENDENTS   0.118731388 -0.02027027 -0.16917105    1.000000000
+cor(GermanCredit_approved_newcar)
+## Warning in cor(GermanCredit_approved_newcar): the standard deviation is zero
+##                     DURATION     HISTORY NEW_CAR       AMOUNT    EMPLOYMENT
+## DURATION         1.000000000  0.14553429      NA  0.425543808  0.0553428082
+## HISTORY          0.145534289  1.00000000      NA  0.088837353  0.1991915916
+## NEW_CAR                   NA          NA       1           NA            NA
+## AMOUNT           0.425543808  0.08883735      NA  1.000000000  0.1341391043
+## EMPLOYMENT       0.055342808  0.19919159      NA  0.134139104  1.0000000000
+## MALE_SINGLE      0.085133046  0.10564782      NA  0.292289309  0.3307569544
+## MALE_MAR_or_WID -0.069209753  0.19438257      NA -0.101578582 -0.1392570299
+## CO.APPLICANT    -0.047444464  0.07202760      NA -0.008988908  0.0552815929
+## AGE             -0.001299483  0.10776524      NA  0.237013459  0.3951766203
+## RENT            -0.119990144 -0.08465759      NA -0.177422358  0.0004892216
+## OWN_RES         -0.109054440  0.02141931      NA -0.041972274 -0.1102866583
+## JOB              0.305840218  0.19682654      NA  0.398839521  0.1866502936
+## NUM_DEPENDENTS  -0.037754009 -0.08923594      NA -0.117450736  0.1496758699
+##                 MALE_SINGLE MALE_MAR_or_WID CO.APPLICANT          AGE
+## DURATION         0.08513305     -0.06920975 -0.047444464 -0.001299483
+## HISTORY          0.10564782      0.19438257  0.072027601  0.107765235
+## NEW_CAR                  NA              NA           NA           NA
+## AMOUNT           0.29228931     -0.10157858 -0.008988908  0.237013459
+## EMPLOYMENT       0.33075695     -0.13925703  0.055281593  0.395176620
+## MALE_SINGLE      1.00000000     -0.30219466  0.040594195  0.485726319
+## MALE_MAR_or_WID -0.30219466      1.00000000 -0.071283244 -0.192161922
+## CO.APPLICANT     0.04059420     -0.07128324  1.000000000  0.032129720
+## AGE              0.48572632     -0.19216192  0.032129720  1.000000000
+## RENT            -0.31936756      0.05150279  0.111052318 -0.121704211
+## OWN_RES          0.02527061      0.04495619 -0.020565319 -0.146128467
+## JOB              0.10196078      0.11489248 -0.091613361  0.182944209
+## NUM_DEPENDENTS   0.37523225     -0.13154425 -0.109843694  0.257283844
+##                          RENT     OWN_RES         JOB NUM_DEPENDENTS
+## DURATION        -0.1199901445 -0.10905444  0.30584022    -0.03775401
+## HISTORY         -0.0846575862  0.02141931  0.19682654    -0.08923594
+## NEW_CAR                    NA          NA          NA             NA
+## AMOUNT          -0.1774223582 -0.04197227  0.39883952    -0.11745074
+## EMPLOYMENT       0.0004892216 -0.11028666  0.18665029     0.14967587
+## MALE_SINGLE     -0.3193675566  0.02527061  0.10196078     0.37523225
+## MALE_MAR_or_WID  0.0515027889  0.04495619  0.11489248    -0.13154425
+## CO.APPLICANT     0.1110523177 -0.02056532 -0.09161336    -0.10984369
+## AGE             -0.1217042113 -0.14612847  0.18294421     0.25728384
+## RENT             1.0000000000 -0.69532880 -0.09467501    -0.16131277
+## OWN_RES         -0.6953288020  1.00000000 -0.04358880    -0.10049909
+## JOB             -0.0946750113 -0.04358880  1.00000000    -0.12655690
+## NUM_DEPENDENTS  -0.1613127747 -0.10049909 -0.12655690     1.00000000
+Plots: Heat matrix of correlation data
+approved1 <- subset(GermanCredit_approved_newcar_a)
+approved0 <- subset(GermanCredit_approved_newcar)
+corr.mat <- round(cor(approved1),2)
+## Warning in cor(approved1): the standard deviation is zero
+corr.mat1 <- round(cor(approved0),2)
+## Warning in cor(approved0): the standard deviation is zero
+melted.corr.mat <- melt(corr.mat)
+melted.corr.mat1 <- melt(corr.mat1)
+ggplot(melted.corr.mat, aes(x=X1,y=X2,fill=value)) + geom_tile() + geom_text(aes(x=X1,y=X2,label = value)) +ggtitle("Response=1") + theme(axis.text.x = element_text(angle = 90))
+## Warning: Removed 24 rows containing missing values (geom_text).
+ 
+ggplot(melted.corr.mat1, aes(x=X1,y=X2,fill=value)) + geom_tile() + geom_text(aes(x=X1,y=X2,label = value))+ ggtitle("Response=0")+ theme(axis.text.x = element_text(angle = 90))
+## Warning: Removed 24 rows containing missing values (geom_text).
+ 
+ggcorr(GermanCredit_approved_newcar, low = "steelblue", mid = "white", high = "darkred")
+## Warning in cor(data, use = method[1], method = method[2]): the standard
+## deviation is zero
+ 
+ggcorr(GermanCredit_approved_newcar_a, low = "steelblue", mid = "white", high = "darkred")
+## Warning in cor(data, use = method[1], method = method[2]): the standard
+## deviation is zero
+  ##### Plots: Scatter Plots
+ggplot(data = GermanCredit.df) + geom_point(mapping = aes(x=RESPONSE,y=DURATION,color=RESPONSE))+ ggtitle("Duration vs RESPONSE")
+ 
+ggplot(data = GermanCredit.df) + geom_point(mapping = aes(x=RESPONSE,y=HISTORY,color=RESPONSE))+ ggtitle("HISTORY vs RESPONSE")
+ 
+ggplot(data = GermanCredit.df) + geom_point(mapping = aes(x=RESPONSE,y=AMOUNT,color=RESPONSE))+ ggtitle("AMOUNT vs RESPONSE")
+ 
+ggplot(data = GermanCredit.df) + geom_point(mapping = aes(x=RESPONSE,y=HISTORY,color=EMPLOYMENT))+ ggtitle("EMPLOYMENT vs RESPONSE")
+ 
+ggplot(data = GermanCredit.df) + geom_point(mapping = aes(x=RESPONSE,y=AGE,color=RESPONSE))+ ggtitle("AGE vs RESPONSE")
+ 
+ggplot(data = GermanCredit.df) + geom_point(mapping = aes(x=RESPONSE,y=JOB,color=RESPONSE))+ ggtitle("JOB vs RESPONSE")
+  ##### Plots: Scatter Plots: Mean value
+categories <- c('DURATION','HISTORY','NEW CAR','AMOUNT','EMPLOYMENT','MALE SINGLE','MALE MAR OR WID','CO APPLICANT','AGE','RENT','OWN RES','JOB','DEPENDENTS')
+approval <- c('Approved','Approved','Approved','Approved','Approved','Approved','Approved','Approved','Approved','Approved','Approved','Approved','Approved')
+approved.df <- data.frame(approval,categories,data.frame(mean=sapply(GermanCredit_approved_newcar_a,mean,na.rm=TRUE)))
+View(approved.df)
+approval <- c('Not Approved','Not Approved','Not Approved','Not Approved','Not Approved','Not Approved','Not Approved','Not Approved','Not Approved','Not Approved','Not Approved','Not Approved','Not Approved')
+approved_not.df <- data.frame(approval,categories,data.frame(mean=sapply(GermanCredit_approved_newcar,mean,na.rm=TRUE)))
+View(approved_not.df)
+combined_mean <- bind_rows(approved.df[,1:3],approved_not.df[,1:3])
+## Warning in bind_rows_(x, .id): Unequal factor levels: coercing to character
+## Warning in bind_rows_(x, .id): binding character and factor vector, coercing
+## into character vector
+
+## Warning in bind_rows_(x, .id): binding character and factor vector, coercing
+## into character vector
+View(combined_mean)
+filtercat <- filter(combined_mean, categories=='DURATION')
+ggplot(filtercat,aes(fill=approval,y=mean,x=categories)) + geom_bar(position="dodge", stat="identity")
+ 
+filtercat <- filter(combined_mean, categories=='NEW CAR')
+ggplot(filtercat,aes(fill=approval,y=mean,x=categories)) + geom_bar(position="dodge", stat="identity")
+ 
+filtercat <- filter(combined_mean, categories=='AMOUNT')
+ggplot(filtercat,aes(fill=approval,y=mean,x=categories)) + geom_bar(position="dodge", stat="identity")
+ 
+filtercat <- filter(combined_mean, categories=='EMPLOYMENT')
+ggplot(filtercat,aes(fill=approval,y=mean,x=categories)) + geom_bar(position="dodge", stat="identity")
+ 
+filtercat <- filter(combined_mean, categories=='MALE SINGLE')
+ggplot(filtercat,aes(fill=approval,y=mean,x=categories)) + geom_bar(position="dodge", stat="identity")
+ 
+filtercat <- filter(combined_mean, categories=='MALE MAR OR WID')
+ggplot(filtercat,aes(fill=approval,y=mean,x=categories)) + geom_bar(position="dodge", stat="identity")
+ 
+filtercat <- filter(combined_mean, categories=='CO APPLICANT')
+ggplot(filtercat,aes(fill=approval,y=mean,x=categories)) + geom_bar(position="dodge", stat="identity")
+ 
+filtercat <- filter(combined_mean, categories=='AGE')
+ggplot(filtercat,aes(fill=approval,y=mean,x=categories)) + geom_bar(position="dodge", stat="identity")
+ 
+filtercat <- filter(combined_mean, categories=='RENT')
+ggplot(filtercat,aes(fill=approval,y=mean,x=categories)) + geom_bar(position="dodge", stat="identity")
+ 
+filtercat <- filter(combined_mean, categories=='OWN RES')
+ggplot(filtercat,aes(fill=approval,y=mean,x=categories)) + geom_bar(position="dodge", stat="identity")
+ 
+filtercat <- filter(combined_mean, categories=='JOB')
+ggplot(filtercat,aes(fill=approval,y=mean,x=categories)) + geom_bar(position="dodge", stat="identity")
+ 
+filtercat <- filter(combined_mean, categories=='DEPENDENTS')
+ggplot(filtercat,aes(fill=approval,y=mean,x=categories)) + geom_bar(position="dodge", stat="identity")
+ 
+Data Partition
+Use the response =1 and = 0 to create sets of data for appropriate analysis
+Training & Validation data
+newcar.df <- GermanCredit.df %>% filter(NEW_CAR==1)
+newcar.df_matrix <- newcar.df[1:234,1:32]
+var.selected <- c(3,4,11,13,16,17,18,23,25,26,28,29,32)
+set.seed(1)
+train.index <- sample(c(1:234),117)
+train.df <- newcar.df_matrix[train.index,var.selected]
+valid.df <- newcar.df_matrix[-train.index,var.selected]
+Logistic Regression
+logit.reg <- glm(RESPONSE ~ ., data = train.df, family="binomial")
+options(scipen=999)
+summary(logit.reg)
+## 
+## Call:
+## glm(formula = RESPONSE ~ ., family = "binomial", data = train.df)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -2.2380  -0.9306   0.4169   0.7464   2.1927  
+## 
+## Coefficients:
+##                      Estimate    Std. Error z value Pr(>|z|)   
+## (Intercept)       -4.51173534    1.90188143  -2.372  0.01768 * 
+## DURATION           0.00184409    0.02848588   0.065  0.94838   
+## HISTORY            0.76686399    0.25689030   2.985  0.00283 **
+## AMOUNT            -0.00006885    0.00008800  -0.782  0.43400   
+## EMPLOYMENT        -0.04704575    0.24454050  -0.192  0.84744   
+## MALE_SINGLE        0.82352202    0.59229558   1.390  0.16441   
+## MALE_MAR_or_WID    1.93238778    0.91917335   2.102  0.03553 * 
+## CO.APPLICANT     -17.97043669 1352.11426229  -0.013  0.98940   
+## AGE                0.05095829    0.02955544   1.724  0.08468 . 
+## RENT               0.92221009    0.98239083   0.939  0.34786   
+## OWN_RES            1.19174925    0.86542575   1.377  0.16849   
+## JOB               -0.09876573    0.41382132  -0.239  0.81136   
+## NUM_DEPENDENTS     0.21350746    0.64527076   0.331  0.74073   
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 155.91  on 116  degrees of freedom
+## Residual deviance: 117.75  on 104  degrees of freedom
+## AIC: 143.75
+## 
+## Number of Fisher Scoring iterations: 15
+pred <- predict(logit.reg,valid.df)
+gain <- gains(valid.df$RESPONSE,logit.reg$fitted.values,groups=90)
+plot(c(0,gain$cume.pct.of.total*sum(valid.df$RESPONSE))~ c(0,gain$cume.obs), xlab="# cases", ylab="Cumulative",main="", type="l")
+lines(c(0,sum(valid.df$RESPONSE))~c(0, dim(valid.df)[1]), lty=2)
+ 
+confusionMatrixFor_Neg1_0_1(ifelse(pred > 0.5, 1, 0), valid.df$RESPONSE)
+##        predictions
+## correct -1  0  1
+##      -1  0  0  0
+##      0   0 25 25
+##      1   0 19 48
+Classification Trees
+default.ct <- rpart(RESPONSE ~ ., data = train.df, method = "class")
+prp(default.ct, type = 1, extra = 1, under = TRUE, split.font = 1, varlen = -10)
+ 
