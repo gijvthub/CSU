@@ -26,7 +26,7 @@ library(rpart)
 library(rpart.plot)
 library(heuristica)
 #add your directory here
-setwd("/Intro to Data Science/R")
+setwd("C:/Users/juan\Desktop")
 GermanCredit.df <- read.csv("GermanCredit.csv")
 summary(GermanCredit.df)
 ```
