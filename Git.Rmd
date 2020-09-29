@@ -1,0 +1,151 @@
+---
+title: "PublishtoGit"
+author: "gijvthub"
+date: "September 28, 2020"
+output:
+  word_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Credit Data Mining
+
+### Directory setting and Data Load
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(reshape)
+library(GGally)
+library(gains)
+library(rpart)
+library(rpart.plot)
+library(heuristica)
+#add your directory here
+setwd("/Intro to Data Science/R")
+GermanCredit.df <- read.csv("GermanCredit.csv")
+summary(GermanCredit.df)
+```
+### Data Exploration
+
+##### Exploratory functions: summary, scatter plot, correlation heat map financial condition, mean bar plot by response value of 13 variable 
+
+####Explore the approval and rejection of credit for a new car. Variables selected are ####:DURATION,HISTORY,NEW_CAR,AMOUNT,EMPLOYMENT,MALE_SINGLE,MALE_MAR_or_WID,CO.APPLICANT,AGE,RENT,OWN_RES,JOB,NUM_DEPENDENTS.
+
+
+```{r}
+#creating the variables for new_car data set with response == 1 or ==0
+GermanCredit_approved_newcar_a <- GermanCredit.df %>% filter(RESPONSE==1,NEW_CAR==1) %>% select(DURATION,HISTORY,NEW_CAR,AMOUNT,EMPLOYMENT,MALE_SINGLE,MALE_MAR_or_WID,CO.APPLICANT,AGE,RENT,OWN_RES,JOB,NUM_DEPENDENTS)
+GermanCredit_approved_newcar <- GermanCredit.df %>% filter(RESPONSE==0,NEW_CAR==1) %>% select(DURATION,HISTORY,NEW_CAR,AMOUNT,EMPLOYMENT,MALE_SINGLE,MALE_MAR_or_WID,CO.APPLICANT,AGE,RENT,OWN_RES,JOB,NUM_DEPENDENTS)
+```
+
+##### Summary(): Summary of data sets
+
+```{r}
+summary(GermanCredit_approved_newcar_a)
+summary(GermanCredit_approved_newcar)
+```
+##### Cor() : Correlation in data set variables
+```{r}
+cor(GermanCredit_approved_newcar_a)
+cor(GermanCredit_approved_newcar)
+```
+##### Plots: Heat matrix of correlation data
+
+```{r}
+approved1 <- subset(GermanCredit_approved_newcar_a)
+approved0 <- subset(GermanCredit_approved_newcar)
+corr.mat <- round(cor(approved1),2)
+corr.mat1 <- round(cor(approved0),2)
+melted.corr.mat <- melt(corr.mat)
+melted.corr.mat1 <- melt(corr.mat1)
+ggplot(melted.corr.mat, aes(x=X1,y=X2,fill=value)) + geom_tile() + geom_text(aes(x=X1,y=X2,label = value)) +ggtitle("Response=1") + theme(axis.text.x = element_text(angle = 90))
+ggplot(melted.corr.mat1, aes(x=X1,y=X2,fill=value)) + geom_tile() + geom_text(aes(x=X1,y=X2,label = value))+ ggtitle("Response=0")+ theme(axis.text.x = element_text(angle = 90))
+ggcorr(GermanCredit_approved_newcar, low = "steelblue", mid = "white", high = "darkred")
+ggcorr(GermanCredit_approved_newcar_a, low = "steelblue", mid = "white", high = "darkred")
+```
+##### Plots: Scatter Plots
+```{r}
+ggplot(data = GermanCredit.df) + geom_point(mapping = aes(x=RESPONSE,y=DURATION,color=RESPONSE))+ ggtitle("Duration vs RESPONSE")
+ggplot(data = GermanCredit.df) + geom_point(mapping = aes(x=RESPONSE,y=HISTORY,color=RESPONSE))+ ggtitle("HISTORY vs RESPONSE")
+ggplot(data = GermanCredit.df) + geom_point(mapping = aes(x=RESPONSE,y=AMOUNT,color=RESPONSE))+ ggtitle("AMOUNT vs RESPONSE")
+ggplot(data = GermanCredit.df) + geom_point(mapping = aes(x=RESPONSE,y=HISTORY,color=EMPLOYMENT))+ ggtitle("EMPLOYMENT vs RESPONSE")
+ggplot(data = GermanCredit.df) + geom_point(mapping = aes(x=RESPONSE,y=AGE,color=RESPONSE))+ ggtitle("AGE vs RESPONSE")
+ggplot(data = GermanCredit.df) + geom_point(mapping = aes(x=RESPONSE,y=JOB,color=RESPONSE))+ ggtitle("JOB vs RESPONSE")
+```
+##### Plots: Scatter Plots: Mean value
+```{r}
+categories <- c('DURATION','HISTORY','NEW CAR','AMOUNT','EMPLOYMENT','MALE SINGLE','MALE MAR OR WID','CO APPLICANT','AGE','RENT','OWN RES','JOB','DEPENDENTS')
+approval <- c('Approved','Approved','Approved','Approved','Approved','Approved','Approved','Approved','Approved','Approved','Approved','Approved','Approved')
+approved.df <- data.frame(approval,categories,data.frame(mean=sapply(GermanCredit_approved_newcar_a,mean,na.rm=TRUE)))
+View(approved.df)
+approval <- c('Not Approved','Not Approved','Not Approved','Not Approved','Not Approved','Not Approved','Not Approved','Not Approved','Not Approved','Not Approved','Not Approved','Not Approved','Not Approved')
+approved_not.df <- data.frame(approval,categories,data.frame(mean=sapply(GermanCredit_approved_newcar,mean,na.rm=TRUE)))
+View(approved_not.df)
+combined_mean <- bind_rows(approved.df[,1:3],approved_not.df[,1:3])
+View(combined_mean)
+filtercat <- filter(combined_mean, categories=='DURATION')
+ggplot(filtercat,aes(fill=approval,y=mean,x=categories)) + geom_bar(position="dodge", stat="identity")
+filtercat <- filter(combined_mean, categories=='NEW CAR')
+ggplot(filtercat,aes(fill=approval,y=mean,x=categories)) + geom_bar(position="dodge", stat="identity")
+filtercat <- filter(combined_mean, categories=='AMOUNT')
+ggplot(filtercat,aes(fill=approval,y=mean,x=categories)) + geom_bar(position="dodge", stat="identity")
+filtercat <- filter(combined_mean, categories=='EMPLOYMENT')
+ggplot(filtercat,aes(fill=approval,y=mean,x=categories)) + geom_bar(position="dodge", stat="identity")
+filtercat <- filter(combined_mean, categories=='MALE SINGLE')
+ggplot(filtercat,aes(fill=approval,y=mean,x=categories)) + geom_bar(position="dodge", stat="identity")
+filtercat <- filter(combined_mean, categories=='MALE MAR OR WID')
+ggplot(filtercat,aes(fill=approval,y=mean,x=categories)) + geom_bar(position="dodge", stat="identity")
+filtercat <- filter(combined_mean, categories=='CO APPLICANT')
+ggplot(filtercat,aes(fill=approval,y=mean,x=categories)) + geom_bar(position="dodge", stat="identity")
+filtercat <- filter(combined_mean, categories=='AGE')
+ggplot(filtercat,aes(fill=approval,y=mean,x=categories)) + geom_bar(position="dodge", stat="identity")
+filtercat <- filter(combined_mean, categories=='RENT')
+ggplot(filtercat,aes(fill=approval,y=mean,x=categories)) + geom_bar(position="dodge", stat="identity")
+filtercat <- filter(combined_mean, categories=='OWN RES')
+ggplot(filtercat,aes(fill=approval,y=mean,x=categories)) + geom_bar(position="dodge", stat="identity")
+filtercat <- filter(combined_mean, categories=='JOB')
+ggplot(filtercat,aes(fill=approval,y=mean,x=categories)) + geom_bar(position="dodge", stat="identity")
+filtercat <- filter(combined_mean, categories=='DEPENDENTS')
+ggplot(filtercat,aes(fill=approval,y=mean,x=categories)) + geom_bar(position="dodge", stat="identity")
+```
+
+### Data Partition
+
+Use the response =1 and = 0 to create sets of data for appropriate analysis
+
+#### Training & Validation data
+
+```{r}
+newcar.df <- GermanCredit.df %>% filter(NEW_CAR==1)
+newcar.df_matrix <- newcar.df[1:234,1:32]
+var.selected <- c(3,4,11,13,16,17,18,23,25,26,28,29,32)
+set.seed(1)
+train.index <- sample(c(1:234),117)
+train.df <- newcar.df_matrix[train.index,var.selected]
+valid.df <- newcar.df_matrix[-train.index,var.selected]
+```
+
+### Logistic Regression
+```{r}
+logit.reg <- glm(RESPONSE ~ ., data = train.df, family="binomial")
+options(scipen=999)
+summary(logit.reg)
+pred <- predict(logit.reg,valid.df)
+gain <- gains(valid.df$RESPONSE,logit.reg$fitted.values,groups=90)
+plot(c(0,gain$cume.pct.of.total*sum(valid.df$RESPONSE))~ c(0,gain$cume.obs), xlab="# cases", ylab="Cumulative",main="", type="l")
+lines(c(0,sum(valid.df$RESPONSE))~c(0, dim(valid.df)[1]), lty=2)
+confusionMatrixFor_Neg1_0_1(ifelse(pred > 0.5, 1, 0), valid.df$RESPONSE)
+```
+
+### Classification Trees
+
+```{r}
+default.ct <- rpart(RESPONSE ~ ., data = train.df, method = "class")
+prp(default.ct, type = 1, extra = 1, under = TRUE, split.font = 1, varlen = -10)
+
+```
